@@ -1,0 +1,64 @@
+{
+  "_args": [
+    [
+      "@types/react-data-grid@2.0.13",
+      "C:\\Users\\s.saad\\ReactProjects\\kuka\\kuka"
+    ]
+  ],
+  "_from": "@types/react-data-grid@2.0.13",
+  "_id": "@types/react-data-grid@2.0.13",
+  "_inBundle": false,
+  "_integrity": "sha512-bT+ozOseJPkBV/ASnC91ML62M4OoSEQZcHBM7PSMkgYeBuLAbIgZ4yFs0c7OFEexdPpse9jhfvjfcA7XMN1xng==",
+  "_location": "/@types/react-data-grid",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@types/react-data-grid@2.0.13",
+    "name": "@types/react-data-grid",
+    "escapedName": "@types%2freact-data-grid",
+    "scope": "@types",
+    "rawSpec": "2.0.13",
+    "saveSpec": null,
+    "fetchSpec": "2.0.13"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@types/react-data-grid/-/react-data-grid-2.0.13.tgz",
+  "_spec": "2.0.13",
+  "_where": "C:\\Users\\s.saad\\ReactProjects\\kuka\\kuka",
+  "bugs": {
+    "url": "https://github.com/DefinitelyTyped/DefinitelyTyped/issues"
+  },
+  "contributors": [
+    {
+      "name": "Simon Gellis",
+      "url": "https://github.com/SupernaviX"
+    },
+    {
+      "name": "Kieran Peat",
+      "url": "https://github.com/KieranPeat"
+    },
+    {
+      "name": "Martin Novak",
+      "url": "https://github.com/martinnov92"
+    }
+  ],
+  "dependencies": {
+    "@types/react": "*"
+  },
+  "description": "TypeScript definitions for react-data-grid",
+  "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped#readme",
+  "license": "MIT",
+  "main": "",
+  "name": "@types/react-data-grid",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  "scripts": {},
+  "typeScriptVersion": "2.8",
+  "typesPublisherContentHash": "e8a01f40b48532c23e82ae661a53db84aac7102e6e7c623b394ba15db4e9f394",
+  "version": "2.0.13"
+}
