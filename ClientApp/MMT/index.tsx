@@ -5,6 +5,7 @@ import Project from "./models/project";
 import TaskModel from "./models/TaskModel";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
+import { Button } from "react-bootstrap";
 
 
  interface IState {
@@ -33,14 +34,15 @@ export default class MMT extends React.Component<any,IState> {
         return (
 
             <div>
-                {/* <link rel="stylesheet" href="fabric.min.css" />
-                <link rel="stylesheet" href="fabric.components.min.css" /> */}
-                {/* <link rel="stylesheet" href="./css/style.css" /> */}
                 <script src="fabric.min.js"></script>
                     <Auswahl collection = {this.projList} onAuswahl={this.callback} />
-                    <button >Import all unlinked Milestones from Project Plan</button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <DefaultButton >Import all unlinked Milestones from Project Plan</DefaultButton>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
                     <DefaultButton style={{backgroundColor:"green", color:"white"}} secondaryText="Opens the Sample Dialog"
                         onClick={this._showDialog} text="SAVE CHANGES" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <Button bsStyle="link">Milestone Management</Button>
                 <br/>
 
                 <OverView tasks={this.state.tasks} refresh = {this.state.refresh}/>

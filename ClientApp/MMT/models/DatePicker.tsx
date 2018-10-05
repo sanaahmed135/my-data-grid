@@ -1,4 +1,5 @@
 import * as React from "react";
+import ReactDOM from "react-dom";
 import { DatePicker, DayOfWeek, IDatePickerStrings,IDatePickerProps  } from "office-ui-fabric-react/lib/DatePicker";
 import "office-ui-fabric-react/lib/components/DatePicker/examples/DatePicker.Examples.scss";
 import { initializeIcons } from "@uifabric/icons";
@@ -61,7 +62,7 @@ export default class DatePickerBasic extends React.Component<{}, IDatePickerBasi
     const { firstDayOfWeek, value } = this.state;
     const desc: string = "This field is required. One of the support input formats is year dash month dash day.";
     return (
-      <DatePicker
+    <DatePicker
         isRequired={false}
         allowTextInput={true}
         ariaLabel={desc}
@@ -70,7 +71,7 @@ export default class DatePickerBasic extends React.Component<{}, IDatePickerBasi
         value={value!}
         onSelectDate={this._onSelectDate}
         formatDate={this._onFormatDate}
-        componentRef={c => this.myRef}
+        componentRef={c =>this.myRef = c}
         parseDateFromString={this._onParseDateFromString}
       />
     );
@@ -78,8 +79,14 @@ export default class DatePickerBasic extends React.Component<{}, IDatePickerBasi
 
 
   private _onSelectDate = (date: Date | null | undefined): void => {
-    this.setState({ value: date });
-  
+    if(this.state.value === date) {
+      return;
+    }
+    // this.myRef is an ReactComponent... Here this will be converted the Html Node
+      this.setState({ value: date });
+        var element :any =ReactDOM.findDOMNode(this.myRef);
+        var tzu : any = element.getElementsByClassName("ms-TextField-field")[0];
+        tzu.style.color = "red";
   }
 
   private _onFormatDate = (date?: Date): string => {
