@@ -2,7 +2,7 @@
 import ReactGrid, { Cell,Row} from "react-data-grid";
 import Column from "./models/Column";
 import RowModel from "./models/RowModel";
-import IOverviewProps, { IOverviewState } from "./Interfaces/IOverview";
+// import IOverviewState  from "./Interfaces/IOverview";
 import TaskModel from "./models/TaskModel";
 import { parse } from "path";
 import update from "immutability-helper";
@@ -13,36 +13,29 @@ const { Selectors } = Data;
 import moment from "moment";
 import DatePickerBasic from "./models/DatePicker";
 import ChangedCellFormater from "./ChangedCellFormater";
+import CustomSelectAll from "./models/CustomSelectAll";
 
+interface IOverviewProps {
+  tasks: Array<TaskModel>;
+  refresh : boolean;
+}
 
+interface IOverviewState {
+  rows: ReadonlyArray<RowModel> ;
+  originalRows : Array<RowModel>;
+  startDate : any;
+  selectedIndexes : Array<number>;
+  fromRow: number;
+  toRow: number;
+  cellUpdateCss : string;
+}
 class CustomRowSelectorCell extends Editors.CheckboxEditor {
   render(): any {
     return super.render();
   }
 }
 
-export interface ICustomSelectAllProps {
-  onChange: any;
-  inputRef: any;
-}
 
-class CustomSelectAll extends React.Component<ICustomSelectAllProps> {
-  render(): any {
-    return (
-      <div className="react-grid-checkbox-container checkbox-align">
-        <input
-          className="react-grid-checkbox"
-          type="checkbox"
-          name="select-all-checkbox"
-          id="select-all-checkbox"
-          ref={this.props.inputRef}
-          onChange={this.props.onChange}
-        />
-        <label htmlFor="select-all-checkbox" className="react-grid-checkbox-label"></label>
-      </div>
-    );
-  }
-}
 
 // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react-data-grid/react-data-grid-tests.tsx
 
@@ -213,6 +206,8 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     ];
 
   }
+
+
   public handleChange(date: Date): void {
     this.setState({
       startDate: date

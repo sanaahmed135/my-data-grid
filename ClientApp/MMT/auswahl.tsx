@@ -15,7 +15,7 @@ export default class Auswahl extends React.Component<IAuswahlProps,{}> {
             <select onChange={this.onSelection} >
                {
                    this.props.collection.map((project,index)=> {
-                        return (<option key={index} value={project.id} label={project.id+ " | "+project.name}></option>);
+                        return (<option key={index} value={project.id} label={project.name}></option>);
                    })
                }
             </select>
@@ -25,4 +25,8 @@ export default class Auswahl extends React.Component<IAuswahlProps,{}> {
     private onSelection(e : React.ChangeEvent<HTMLSelectElement>): void {
         this.props.onAuswahl(e.target.options[e.target.selectedIndex].value);
     }
+
+    // componentWillReceiveProps(): void {
+    //     console.log(this.props.collection);
+    // }
 }

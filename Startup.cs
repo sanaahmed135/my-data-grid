@@ -15,6 +15,7 @@ namespace kuka
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -25,10 +26,20 @@ namespace kuka
                 app.UseDeveloperExceptionPage();
             }
 
+        // app.UseMvc();
 
-            app.UseDefaultFiles(GetDefaultFileOptions());
-
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default", "{controller=Test}/{action=Index}/{id?}");
+            });
+            //app.UseSwaggerUi3WithApiExplorer(settings => {
+            //    settings.GeneratorSettings.DefaultPropertyNameHandling = NJsonSchema.PropertyNameHandling.CamelCase;
+            //});
+             app.UseDefaultFiles(GetDefaultFileOptions());
+            
             app.UseStaticFiles();
+
+           
         }
 
 

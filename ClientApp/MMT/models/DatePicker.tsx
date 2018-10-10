@@ -77,15 +77,14 @@ export default class DatePickerBasic extends React.Component<{}, IDatePickerBasi
     );
   }
 
-
   private _onSelectDate = (date: Date | null | undefined): void => {
-    if(this.state.value === date) {
+    if(this.state.value.getTime() === date.getTime()) {
       return;
     }
     // this.myRef is an ReactComponent... Here this will be converted the Html Node
       this.setState({ value: date });
         var element :any =ReactDOM.findDOMNode(this.myRef);
-        var tzu : any = element.getElementsByClassName("ms-TextField-field")[0];
+        var tzu :any = element.getElementsByClassName("ms-TextField-field")[0];
         tzu.style.color = "red";
   }
 
@@ -109,3 +108,4 @@ export default class DatePickerBasic extends React.Component<{}, IDatePickerBasi
     return new Date(year, month, day);
   }
 }
+

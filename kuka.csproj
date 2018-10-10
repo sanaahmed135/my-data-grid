@@ -6,29 +6,33 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ClientApp\src\app\app.tsx" />
-    <None Remove="ClientApp\src\app\index.tsx" />
-    <None Remove="ClientApp\src\app\MMT\auswahl.tsx" />
-    <None Remove="ClientApp\src\app\MMT\import.tsx" />
-    <None Remove="ClientApp\src\app\MMT\overview.tsx" />
+    <Compile Remove="%40types\**" />
+    <Compile Remove="ClientApp\**" />
+    <Content Remove="%40types\**" />
+    <Content Remove="ClientApp\**" />
+    <EmbeddedResource Remove="%40types\**" />
+    <EmbeddedResource Remove="ClientApp\**" />
+    <None Remove="%40types\**" />
+    <None Remove="ClientApp\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClientApp\src\app\Interfaces\" />
+    <Content Remove="tsconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="webpack.config.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="1.50.5" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <TypeScriptCompile Include="ClientApp\src\app\app.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\app\index.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\app\MMT\auswahl.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\app\MMT\import.tsx" />
-    <TypeScriptCompile Include="ClientApp\src\app\MMT\overview.tsx" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

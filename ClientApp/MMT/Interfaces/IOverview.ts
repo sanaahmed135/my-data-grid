@@ -6,7 +6,7 @@ export default interface IOverviewProps {
     refresh : boolean;
   }
 
-export interface IOverviewState {
+export default interface IOverviewState {
     rows: ReadonlyArray<RowModel> ;
     originalRows : Array<RowModel>;
     startDate : any;

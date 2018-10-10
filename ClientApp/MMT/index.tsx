@@ -6,41 +6,50 @@ import TaskModel from "./models/TaskModel";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Button } from "react-bootstrap";
-
+import axios from "axios";
 
  interface IState {
     tasks : Array<TaskModel>;
     hideDialog : boolean;
     selectedProjectId : string;
     refresh : boolean;
+    error : string;
+    isLoading : boolean;
+    projects : Array<Project>;
  }
 
 export default class MMT extends React.Component<any,IState> {
-    public projList : Array<Project>;
-    public tasks : Array<TaskModel>;
 
     constructor(props : any) {
         super(props);
-        this.projList = this.getProjects();
-        this.tasks = this.getTasks();
-        this.state = {tasks : this.filterTaskByProjectId("1"), selectedProjectId:"1",
-        hideDialog: true,refresh:false} ;
 
-        // this.onClickEvent = this.onClickEvent.bind(this);
-        this.callback = this.callback.bind(this);
+        this.state = {
+            projects : [],// this.getProjectObject(),
+            tasks : [], // this.filterTaskByProjectId("1"),
+            selectedProjectId: "",
+            hideDialog: true,
+            refresh:false,
+            error:"",
+            isLoading : false
+        } ;
+
+        this.updateTaskOnProjectSelectionChanged = this.updateTaskOnProjectSelectionChanged.bind(this);
     }
 
+    public componentDidMount(): void {
+        this.fetchAllProjects();
+    }
     public render(): any {
         return (
 
             <div>
                 <script src="fabric.min.js"></script>
-                    <Auswahl collection = {this.projList} onAuswahl={this.callback} />
+                    <Auswahl collection = {this.state.projects} onAuswahl={this.updateTaskOnProjectSelectionChanged} />
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <DefaultButton >Import all unlinked Milestones from Project Plan</DefaultButton>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <DefaultButton style={{backgroundColor:"green", color:"white"}} secondaryText="Opens the Sample Dialog"
-                        onClick={this._showDialog} text="SAVE CHANGES" />
+                        onClick={this.showSaveChangesDialogBox} text="SAVE CHANGES" />
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <Button bsStyle="link">Milestone Management</Button>
                 <br/>
@@ -50,7 +59,7 @@ export default class MMT extends React.Component<any,IState> {
                   {/* Dialog box for  save changes */}
                   <Dialog
                     hidden={this.state.hideDialog}
-                    onDismiss={this._closeDialog}
+                    onDismiss={this.closeSaveChangesDialogBox}
                     dialogContentProps={{
                         type: DialogType.normal,
                         title: "Approval",
@@ -65,44 +74,34 @@ export default class MMT extends React.Component<any,IState> {
                     }}>
                     {null /** You can also include null values as the result of conditionals */}
                     <DialogFooter>
-                        <PrimaryButton onClick={this._saveChanges} text="Yes" />
-                        <DefaultButton onClick={this._cancelChanges} text="No" />
+                        <PrimaryButton onClick={this.saveChanges} text="Yes" />
+                        <DefaultButton onClick={this.discardChangesAndRefresh} text="No" />
                     </DialogFooter>
                     </Dialog>
             </div>);
     }
 
-    private _showDialog = (): void => {
+    private showSaveChangesDialogBox = (): void => {
         this.setState({ hideDialog: false , refresh : false });
     }
 
-    private _closeDialog = (): void => {
+    private closeSaveChangesDialogBox = (): void => {
         this.setState({ hideDialog: true });
     }
 
-    private _saveChanges = (): void => {
+    private saveChanges = (): void => {
         this.setState({
             hideDialog: true,
             refresh : false});
     }
-    private _cancelChanges = (): void => {
+
+    private discardChangesAndRefresh = (): void => {
         this.setState({
             hideDialog: true,
             tasks:this.filterTaskByProjectId(this.state.selectedProjectId),
             refresh : true});
     }
 
-
-    private getProjects(): Array<Project> {
-        let collection : Array<Project> = new Array<Project>();
-        collection.push(new Project("1","Proj1"));
-        collection.push(new Project("2","Proj2"));
-        collection.push(new Project("3","Proj3"));
-        collection.push(new Project("4","Proj4"));
-        collection.push(new Project("5","Proj5"));
-
-        return collection;
-    }
 
     private getTasks(): Array<TaskModel> {
         let collection : Array<TaskModel> = new Array<TaskModel>();
@@ -123,7 +122,8 @@ export default class MMT extends React.Component<any,IState> {
         return collection;
     }
 
-    private callback(selectedProjectId : string): void {
+    private updateTaskOnProjectSelectionChanged(selectedProjectId : string): void {
+
         this.setState({tasks : this.filterTaskByProjectId(selectedProjectId),
                        selectedProjectId : selectedProjectId,
                        refresh : true
@@ -131,11 +131,36 @@ export default class MMT extends React.Component<any,IState> {
     }
 
     private filterTaskByProjectId(projectId: string): Array<TaskModel> {
-
-        return this.tasks.filter((t)=> t.projectId === projectId);
+        this.fetchTasksByProjectUID(projectId);
+        return [];
+        //return this.tasks.filter((t)=> t.projectId === projectId);
     }
 
-    private onClickEvent( e: any): void {
-        alert(e.selectedProject);
+    private fetchAllProjects(): void {
+        axios.get("http://localhost:5000/test/GetAllProjects")
+       .then((res : any )=> {
+            this.setState({
+                projects: res.data
+               // selectedProjectId : res.data[0]
+            });
+        // console.log(res);
+    })
+        // catch any errors we hit and update the app
+        .catch(error => this.setState({ error, isLoading: false }));
     }
+
+    private fetchTasksByProjectUID(projectId: string): any {
+        console.log(projectId);
+        axios.get("http://localhost:5000/Test/GetTaskByProjectUID/{"+projectId+"}")
+            .then(response => {
+                this.setState({
+                    tasks : response.data
+                });
+            })
+            .catch(error => {
+                this.setState({ error, isLoading: false });
+                console.log(error);}
+            );
+    }
+
 }
