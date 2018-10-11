@@ -2,14 +2,14 @@
 import Auswahl from "./auswahl";
 import OverView from "./overview";
 import Project from "./models/project";
-import TaskModel from "./models/TaskModel";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Button } from "react-bootstrap";
 import axios from "axios";
+import RowModel from "./models/RowModel";
 
  interface IState {
-    tasks : Array<TaskModel>;
+    tasks : Array<RowModel>;
     hideDialog : boolean;
     selectedProjectId : string;
     refresh : boolean;
@@ -96,71 +96,56 @@ export default class MMT extends React.Component<any,IState> {
     }
 
     private discardChangesAndRefresh = (): void => {
-        this.setState({
+		this.setState({
             hideDialog: true,
-            tasks:this.filterTaskByProjectId(this.state.selectedProjectId),
             refresh : true});
-    }
-
-
-    private getTasks(): Array<TaskModel> {
-        let collection : Array<TaskModel> = new Array<TaskModel>();
-        collection.push(new TaskModel("1","GO/MO: Project Initiation","1"));
-        collection.push(new TaskModel("2","Confirmation","1"));
-        collection.push(new TaskModel("3","Release 1.0 Prototype","1"));
-        collection.push(new TaskModel("4","Release 1.1 Initial-Batch","2"));
-        collection.push(new TaskModel("5","Release 1.1 Prototype","2"));
-        collection.push(new TaskModel("6","Release 1.0 Serial-Release","2"));
-        collection.push(new TaskModel("7","Release 1.2 Serial-Release","3"));
-        collection.push(new TaskModel("8","Release 1.3 Prototype","3"));
-        collection.push(new TaskModel("9","Release 1.2 Confirmation","3"));
-        collection.push(new TaskModel("10","Release 1.2 Prototype","4"));
-        collection.push(new TaskModel("11","Release 1.0 Confirmation","4"));
-        collection.push(new TaskModel("12","Confirmation","5"));
-        collection.push(new TaskModel("13","Release 1.4 Prototype","5"));
-        collection.push(new TaskModel("14","Release 1.4 Initial-Batch","5"));
-        return collection;
+			this.fetchTaskByProjectId(this.state.selectedProjectId);
     }
 
     private updateTaskOnProjectSelectionChanged(selectedProjectId : string): void {
-
-        this.setState({tasks : this.filterTaskByProjectId(selectedProjectId),
-                       selectedProjectId : selectedProjectId,
-                       refresh : true
+        this.setState({ selectedProjectId : selectedProjectId,
+                        refresh : true
                     });
-    }
 
-    private filterTaskByProjectId(projectId: string): Array<TaskModel> {
-        this.fetchTasksByProjectUID(projectId);
-        return [];
-        //return this.tasks.filter((t)=> t.projectId === projectId);
+        this.fetchTaskByProjectId(selectedProjectId);
     }
 
     private fetchAllProjects(): void {
-        axios.get("http://localhost:5000/test/GetAllProjects")
+        axios.get("http://localhost:5000/kuka/GetAllProjects")
        .then((res : any )=> {
+            let projects : Project[] = res.data.data;
+            let defaultProject : Project = projects[0];
             this.setState({
-                projects: res.data
-               // selectedProjectId : res.data[0]
+                projects: projects,
+                selectedProjectId : defaultProject.id
             });
-        // console.log(res);
-    })
-        // catch any errors we hit and update the app
+
+            this.updateTaskOnProjectSelectionChanged(defaultProject.id);
+
+         })
         .catch(error => this.setState({ error, isLoading: false }));
     }
 
-    private fetchTasksByProjectUID(projectId: string): any {
-        console.log(projectId);
-        axios.get("http://localhost:5000/Test/GetTaskByProjectUID/{"+projectId+"}")
-            .then(response => {
+    private fetchTaskByProjectId(projectId: string): void {
+        axios.get("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
+            .then((response : any) => {
                 this.setState({
                     tasks : response.data
                 });
             })
-            .catch(error => {
+            .catch((error) => {
                 this.setState({ error, isLoading: false });
-                console.log(error);}
-            );
+            });
+    }
+
+    private fetchAllTypes(): void {
+        axios.get("http://localhost:5000/kuka/GetTypes")
+            .then((response : any) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                this.setState({ error});
+            });
     }
 
 }

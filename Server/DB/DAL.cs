@@ -36,9 +36,29 @@ namespace kuka.Server.DB
             }
 
         }
+        public IEnumerable<Models.Type> GetAllTypes()
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var result = conn.Query<Models.Type>("kuka.GetTypes",
+                    commandType: CommandType.StoredProcedure);
 
+                return result;
+            }
 
+        }
 
+        public IEnumerable<Models.Status> GetAllStatuses()
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var result = conn.Query<Models.Status>("kuka.GetStatuses",
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+
+        }
         public int AddMiletonesByProjectUID(Guid projectId, string task, string date, string type, string status, Guid linkedTask)
 
         {

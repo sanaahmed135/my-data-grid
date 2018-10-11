@@ -2,8 +2,10 @@
 import ReactGrid, { Cell,Row} from "react-data-grid";
 import Column from "./models/Column";
 import RowModel from "./models/RowModel";
+import {Promise} from "es6-promise";
+
 // import IOverviewState  from "./Interfaces/IOverview";
-import TaskModel from "./models/TaskModel";
+// import TaskModel from "./models/TaskModel";
 import { parse } from "path";
 import update from "immutability-helper";
 import { Editors, Toolbar, Data } from "react-data-grid-addons";
@@ -14,9 +16,12 @@ import moment from "moment";
 import DatePickerBasic from "./models/DatePicker";
 import ChangedCellFormater from "./ChangedCellFormater";
 import CustomSelectAll from "./models/CustomSelectAll";
+import Type from "./models/Type";
+import Status from "./models/Status";
+import axios from "axios";
 
 interface IOverviewProps {
-  tasks: Array<TaskModel>;
+  tasks: Array<RowModel>;
   refresh : boolean;
 }
 
@@ -28,6 +33,7 @@ interface IOverviewState {
   fromRow: number;
   toRow: number;
   cellUpdateCss : string;
+  error : string;
 }
 class CustomRowSelectorCell extends Editors.CheckboxEditor {
   render(): any {
@@ -41,23 +47,25 @@ class CustomRowSelectorCell extends Editors.CheckboxEditor {
 
 export default class Overview extends React.Component<IOverviewProps, IOverviewState> {
   private columns: Array<Column> = new Array<Column>();
-  private mydate: any = new Date();
+  private types: Array<Type> = [];
+  private status: Array<Status> = [];
   constructor(props: any, context: any) {
     super(props, context);
     this.createColumns = this.createColumns.bind(this);
     this.handleDeleteRow = this.handleDeleteRow.bind(this);
-    this.createColumns();
+    // this.createColumns();
     this.getRows = this.getRows.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    let originalRows: Array<RowModel> = this.getRows(this.props.tasks);
+    let originalRows: Array<RowModel> = [];
     this.state = {
-      rows: this.getRows(this.props.tasks),
+      rows: [],
       originalRows: originalRows,
       startDate: new Date(),
       selectedIndexes: new Array<number>(),
       fromRow: 0,
       toRow: 0,
       cellUpdateCss: "red",
+      error:"",
     };
   }
 
@@ -90,14 +98,14 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
           }}
           rowActionsCell={CustomRowSelectorCell}
           selectAllRenderer={CustomSelectAll}
-          onRowClick={this.onRowClick}
+          // onRowClick={this.onRowClick}
         />
         <button onClick={this.handleDeleteRow}>Delete Tasks</button>
       </div>
     );
   }
   onRowClick = (rowIdx: number, row: Object) => {
-    // do nothing, just test that it accepts an event
+    // just test
   }
   onRowsSelected = (rows: Array<AdazzleReactDataGrid.SelectionParams>) => {
     let rowIndexes: Array<number> = rows.map(r => r.rowIdx);
@@ -116,18 +124,17 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.setState({ rows: this.getRows(newProps.tasks) });
     this.changeFontColor();
   }
-
+  public componentDidMount(): void {
+      this.tempAsync();
+  }
   public getRowbyIndex = (index: number): RowModel => {
     return this.state.rows[index];
   }
 
-  public createColumns(): void {
-    let type: Array<string> = ["", "Evaluation", "Prototype", "Initial-Batch",
-      "Serial-Release", "Project Specific", "Stipulation"];
-    let status: Array<string> = ["", "Active", "Closed", "Removed"];
-    let linkedTask: Array<string> = ["", "40 | Release 1.0 Prototype", "100 | EoP",
-      "145 | v1.2 Stipulation", "173 | Release 1.3 Prototype", "189 | Initial-Batch",
-      "203 | Release 1.3 Serial Release", "226 | Release 1.4 Prototype"];
+  public createColumns(typeCollection : Type[], statusCollection : Status[]): void {
+    // let types : any  = this.types;
+    // let status: Array<Status> = this.status;
+    let linkedTask: Array<string> = [];
     // https://github.com/adazzle/react-data-grid/issues/605
     this.columns= [
       {
@@ -151,18 +158,12 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
         editable: true,
         resizable: true,
         sortable: true,
-        width: 110,
-        events: {
-          onChange : (ev: React.SyntheticEvent<any>, args: { rowIdx: number, idx: number, name: string }) => {
-            // var cell: any = ev.currentTarget.getElementsByClassName("ms-TextField-field");
-            // cell[0].style.color = "red";
-          }
-        }
+        width: 110
       },
       {
         key: "type",
         name: "Type",
-        editor: <DropDownEditor options={type} />,
+        editor: <DropDownEditor options={typeCollection} />,
         editable: true,
         resizable: true,
         sortable: true,
@@ -176,7 +177,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
       {
         key: "status",
         name: "Status",
-        editor: <DropDownEditor options={status} />,
+        editor: <DropDownEditor options={statusCollection} />,
         editable: true,
         resizable: true,
         sortable: true,
@@ -214,31 +215,20 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     });
   }
 
-  public getRows(tasks: Array<TaskModel>): Array<RowModel> {
+  public getRows(tasks: any): Array<RowModel> {
     let rows: Array<RowModel> = new Array<RowModel>();
-
+    let temp: any= this.props.tasks;
+    let nullProjectGuid :string = "00000000-0000-0000-0000-000000000000";
     for (let id: number = 0; id < tasks.length; id++) {
-
-      let type: string = ["Evaluation", "Prototype", "Initial-Batch",
-        "Serial-Release", "Project Specific", "Stipulation"][Math.floor((Math.random() * 5) + 1)];
-      let status: string = ["Active", "Closed", "Removed"][Math.floor((Math.random() * 2) + 1)];
-      let date: Date = this.randomDate(new Date(2012, 0, 1), new Date());
-      let linkedTask: string = ["40 | Release 1.0 Prototype", "100 | EoP",
-        "145 | v1.2 Stipulation", "173 | Release 1.3 Prototype", "189 | Initial-Batch"
-        , "203 | Release 1.3 Serial Release", "226 | Release 1.4 Prototype"][Math.floor((Math.random() * 6) + 1)];
-      let task: TaskModel = tasks[id];
-      let rDate: string = "10.10.2018";
-      const row: RowModel = new RowModel(task.name, rDate, type, status, linkedTask);
-
+      let date: string =moment(tasks[id].date).format("DD.MM.YY");
+      let linkedTask : string=tasks[id].linkedTask === nullProjectGuid ?"":tasks[id].linkedTask ;
+      const row: RowModel = new RowModel(tasks[id].name, date, tasks[id].type, tasks[id].status, linkedTask);
       rows.push(row);
 
     }
     return rows;
   }
 
-  public randomDate(start: Date, end: Date): Date {
-    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-  }
 
   public handleGridRowsUpdated = (e: ReactGrid.GridRowsUpdatedEvent): void => {
     let rows: Array<RowModel> = this.state.rows.slice();
@@ -252,10 +242,11 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   }
 
   handleAddRow = (newRowIndex: any) => {
+    // let type: Type = this.types[0];
+    // let status: Status =this.status[0];
     let type: string = ["", "Evaluation", "Prototype", "Initial-Batch",
       "Serial-Release", "Project Specific", "Stipulation"][0];
     let status: string = ["", "Active", "Closed", "Removed"][0];
-    let date: Date = this.randomDate(new Date(2012, 0, 1), new Date());
     let linkedTask: string = ["", "40 | Release 1.0 Prototype", "100 | EoP",
       "145 | v1.2 Stipulation", "173 | Release 1.3 Prototype", "189 | Initial-Batch"
       , "203 | Release 1.3 Serial Release", "226 | Release 1.4 Prototype"][0];
@@ -300,4 +291,52 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
       : this.state.rows.slice(0).sort(comparer));
     this.setState({ rows });
   }
+
+  private fetchAllTypes(): any {
+
+    axios.get("http://localhost:5000/kuka/GetTypes")
+        .then((response : any) => {
+           this.types= response.data;
+        })
+        .catch((error) => {
+          this.setState({ error});
+      });
+  }
+
+  private fetchAllStatuses(): any {
+    axios.get("http://localhost:5000/kuka/GetStatuses")
+        .then((response : any) => {
+           this.status= response.data;
+        })
+        .catch((error) => {
+          this.setState({ error});
+      });
+  }
+
+  private fetchAllTypesAsync(): any {
+     return fetch("http://localhost:5000/kuka/GetTypes")
+          .then((response : any)=> {
+            return response.json();
+        });
+  }
+
+  private fetchAllStatusAsync(): any {
+    return fetch("http://localhost:5000/kuka/GetStatuses")
+            .then((response : any)=> {
+              return  response.json();
+            });
+  }
+
+  private  async tempAsync(): Promise<void> {
+     let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(), this.fetchAllStatusAsync()]);
+      console.log(typeCollection);
+      console.log(statusCollection);
+
+      this.createColumns(typeCollection,statusCollection);
+    // let a1 = await this.fetchAllStatusAsync();
+    // let a2 = await this.fetchAllTypesAsync();
+
+
+  }
+
 }

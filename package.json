@@ -31,6 +31,7 @@
     "typescript": "^2.9.2"
   },
   "devDependencies": {
+    "@types/es6-promise": "^3.3.0",
     "css-loader": "^1.0.0",
     "webpack": "^4.15.1",
     "webpack-cli": "^3.0.8"

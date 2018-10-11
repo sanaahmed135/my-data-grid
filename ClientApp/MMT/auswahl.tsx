@@ -25,8 +25,4 @@ export default class Auswahl extends React.Component<IAuswahlProps,{}> {
     private onSelection(e : React.ChangeEvent<HTMLSelectElement>): void {
         this.props.onAuswahl(e.target.options[e.target.selectedIndex].value);
     }
-
-    // componentWillReceiveProps(): void {
-    //     console.log(this.props.collection);
-    // }
 }

@@ -23,26 +23,49 @@ namespace kuka.Controllers
         }
 
         [HttpGet]
-        [Route("Test/GetAllProjects")]
-        public IEnumerable<Project> GetMeProjects()
+        [Route("kuka/GetAllProjects")]
+        public JsonResult GetMeProjects()
         {
-            var allProjects = _dal.GetAllProject();
-            return allProjects;
+            try
+            {
+                var allProjects = _dal.GetAllProject();
+                return Json(new JsonReponse { Data = allProjects, IsSucessful = true, Error = string.Empty });
+            }
+
+            catch (Exception ex)
+            {
+                return Json(new JsonReponse { Data = null, IsSucessful = false, Error = ex.Message });
+            }
         }
 
-        [Route("Test/GetTaskByProjectUID/{guid}")]
+        [Route("kuka/GetTaskByProjectUID/{guid}")]
         [HttpGet]
         public IEnumerable<Server.Models.Task> GetTaskByProjectUID(string guid)
         {
             var tasks = _dal.GetTaskByProjectUID(new Guid(guid));
             return tasks;
         }
-        //[Route("Test/SetTasks/{guid}/{name}/{date}/{type}/{status}/{linkedTask}")]
-        [HttpPost, Route("AddTasks")]
-        [HttpPost]
-        public int SetTasks([FromBody]Server.Models.Task task)
+
+        [Route("kuka/GetTypes")]
+        [HttpGet]
+        public IEnumerable<string> GetTypes()
         {
-            var tasks = _dal.AddMiletonesByProjectUID(task.Project,task.Name,task.Date,task.Type,task.Status, task.LinkedTask);
+            var types = _dal.GetAllTypes().Select(x=>x.DisplayName);
+            return types;
+        }
+
+        [Route("kuka/GetStatuses")]
+        [HttpGet]
+        public IEnumerable<string> GetAllStatuses()
+        {
+            var statuses = _dal.GetAllStatuses().Select(x => x.DisplayName) ;
+            return statuses;
+        }
+
+        [HttpPost, Route("kuka/AddTasks/{projectId}")]
+        public int SetTasks(Guid projectId, [FromBody]Server.Models.Task task)
+        {
+            var tasks = _dal.AddMiletonesByProjectUID(task.Project, task.Name, task.Date, task.Type, task.Status, task.LinkedTask);
             return tasks;
         }
         [Route("GetDisplayContent/{name}")]
