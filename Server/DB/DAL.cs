@@ -36,6 +36,19 @@ namespace kuka.Server.DB
             }
 
         }
+
+        public IEnumerable<LinkedTask> GetLinkedTasksByProjectUID(Guid projectId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var result = conn.Query<LinkedTask>("kuka.GetLinkedTasksByProjectUID",
+                    new { @ProjectUid = projectId },
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+
+        }
         public IEnumerable<Models.Type> GetAllTypes()
         {
             using (var conn = new SqlConnection(_connectionString))

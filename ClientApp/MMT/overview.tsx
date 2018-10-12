@@ -3,26 +3,23 @@ import ReactGrid, { Cell,Row} from "react-data-grid";
 import Column from "./models/Column";
 import RowModel from "./models/RowModel";
 import {Promise} from "es6-promise";
-
-// import IOverviewState  from "./Interfaces/IOverview";
-// import TaskModel from "./models/TaskModel";
-import { parse } from "path";
 import update from "immutability-helper";
 import { Editors, Toolbar, Data } from "react-data-grid-addons";
 import { Button } from "react-bootstrap";
 const { AutoComplete: AutoCompleteEditor, DropDownEditor } = Editors;
-const { Selectors } = Data;
 import moment from "moment";
 import DatePickerBasic from "./models/DatePicker";
 import ChangedCellFormater from "./ChangedCellFormater";
 import CustomSelectAll from "./models/CustomSelectAll";
 import Type from "./models/Type";
 import Status from "./models/Status";
-import axios from "axios";
+import LinkedTask from "./models/LinkedTask";
 
 interface IOverviewProps {
   tasks: Array<RowModel>;
   refresh : boolean;
+  selectedProjectId : string;
+  linkedTaskPerProject : LinkedTask [];
 }
 
 interface IOverviewState {
@@ -41,14 +38,13 @@ class CustomRowSelectorCell extends Editors.CheckboxEditor {
   }
 }
 
-
-
 // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react-data-grid/react-data-grid-tests.tsx
 
 export default class Overview extends React.Component<IOverviewProps, IOverviewState> {
   private columns: Array<Column> = new Array<Column>();
   private types: Array<Type> = [];
   private status: Array<Status> = [];
+
   constructor(props: any, context: any) {
     super(props, context);
     this.createColumns = this.createColumns.bind(this);
@@ -57,6 +53,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.getRows = this.getRows.bind(this);
     this.handleChange = this.handleChange.bind(this);
     let originalRows: Array<RowModel> = [];
+
     this.state = {
       rows: [],
       originalRows: originalRows,
@@ -104,6 +101,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
       </div>
     );
   }
+
   onRowClick = (rowIdx: number, row: Object) => {
     // just test
   }
@@ -119,20 +117,26 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
 
   public componentWillReceiveProps(newProps: IOverviewProps): void {
     if (false === newProps.refresh) { // state will not set if user select 'No' on save changes
-      return;
-    }
-    this.setState({ rows: this.getRows(newProps.tasks) });
-    this.changeFontColor();
+    return;
   }
+  this.tempAsync();
+  // this.createColumns(this.types,this.status,newProps.linkedTaskPerProject);
+  this.setState({ rows: this.getRows(newProps.tasks) });
+  this.changeFontColor();
+
+  }
+
   public componentDidMount(): void {
       this.tempAsync();
   }
+
   public getRowbyIndex = (index: number): RowModel => {
     return this.state.rows[index];
   }
 
-  public createColumns(typeCollection : Type[], statusCollection : Status[]): void {
-    // let types : any  = this.types;
+  public createColumns(typeCollection : Type[], statusCollection : Status[],linkedTaskCollection : LinkedTask[]): void {
+    // this.types=typeCollection;
+    // this.status=statusCollection;
     // let status: Array<Status> = this.status;
     let linkedTask: Array<string> = [];
     // https://github.com/adazzle/react-data-grid/issues/605
@@ -192,7 +196,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
       {
         key: "linkedTask",
         name: "Linked Task",
-        editor: <DropDownEditor options={linkedTask} />,
+        editor: <DropDownEditor options={linkedTaskCollection} />,
         editable: true,
         resizable: true,
         sortable: true,
@@ -222,7 +226,8 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     for (let id: number = 0; id < tasks.length; id++) {
       let date: string =moment(tasks[id].date).format("DD.MM.YY");
       let linkedTask : string=tasks[id].linkedTask === nullProjectGuid ?"":tasks[id].linkedTask ;
-      const row: RowModel = new RowModel(tasks[id].name, date, tasks[id].type, tasks[id].status, linkedTask);
+      const row: RowModel = new RowModel(tasks[id].project,tasks[id].name,
+         date, tasks[id].type, tasks[id].status, linkedTask);
       rows.push(row);
 
     }
@@ -232,13 +237,15 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
 
   public handleGridRowsUpdated = (e: ReactGrid.GridRowsUpdatedEvent): void => {
     let rows: Array<RowModel> = this.state.rows.slice();
+
     for (let i: number = e.fromRow; i <= e.toRow; i++) {
-      let rowToUpdate: RowModel = rows[i] as RowModel;
-      let updatedRow: RowModel = update(rowToUpdate, { $merge: e.updated });
-      rows[i] = updatedRow;
+          let rowToUpdate: RowModel = rows[i] as RowModel;
+          let updatedRow: RowModel = update(rowToUpdate, { $merge: e.updated });
+          rows[i] = updatedRow;
+          // rowToUpdate.isUpdated = true; // add
     }
     this.setState({ rows: rows, fromRow: e.fromRow, toRow: e.toRow });
-
+    // this.props.callback(rows); // add
   }
 
   handleAddRow = (newRowIndex: any) => {
@@ -251,7 +258,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
       "145 | v1.2 Stipulation", "173 | Release 1.3 Prototype", "189 | Initial-Batch"
       , "203 | Release 1.3 Serial Release", "226 | Release 1.4 Prototype"][0];
     let rDate: string = "10.10.2018";
-    const newRow: RowModel = new RowModel("", rDate, type, status, linkedTask);
+    const newRow: RowModel = new RowModel("","", rDate, type, status, linkedTask);
     let rows: ReadonlyArray<RowModel> = this.state.rows.slice();
     rows = update(rows, { $push: [newRow] });
     this.setState({ rows });
@@ -263,13 +270,11 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.setState({ rows: newRows, selectedIndexes: new Array<number>() });
   }
 
-  // // change font color to red for all the cells that are edited
   changeCellFontColor(ev: React.SyntheticEvent<any>, color: string): void {
     var cell: any = ev.currentTarget;
     cell.style.color = color;
   }
 
-  // change font color back to black when save no changes
   changeFontColor(): void {
     var coll : any =document.getElementsByClassName("react-grid-Cell__value");
     for(var i : number=0, len : number=coll.length; i<len; i++) {
@@ -292,26 +297,6 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.setState({ rows });
   }
 
-  private fetchAllTypes(): any {
-
-    axios.get("http://localhost:5000/kuka/GetTypes")
-        .then((response : any) => {
-           this.types= response.data;
-        })
-        .catch((error) => {
-          this.setState({ error});
-      });
-  }
-
-  private fetchAllStatuses(): any {
-    axios.get("http://localhost:5000/kuka/GetStatuses")
-        .then((response : any) => {
-           this.status= response.data;
-        })
-        .catch((error) => {
-          this.setState({ error});
-      });
-  }
 
   private fetchAllTypesAsync(): any {
      return fetch("http://localhost:5000/kuka/GetTypes")
@@ -328,14 +313,10 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   }
 
   private  async tempAsync(): Promise<void> {
-     let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(), this.fetchAllStatusAsync()]);
-      console.log(typeCollection);
-      console.log(statusCollection);
 
-      this.createColumns(typeCollection,statusCollection);
-    // let a1 = await this.fetchAllStatusAsync();
-    // let a2 = await this.fetchAllTypesAsync();
-
+      let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(),
+        this.fetchAllStatusAsync()]);
+        this.createColumns(typeCollection,statusCollection,this.props.linkedTaskPerProject);
 
   }
 

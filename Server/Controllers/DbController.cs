@@ -46,6 +46,14 @@ namespace kuka.Controllers
             return tasks;
         }
 
+        [Route("kuka/GetLinkedTasksByProjectUID/{guid}")]
+        [HttpGet]
+        public IEnumerable<string> GetLinkedTasksByProjectUID(string guid)
+        {
+            var linkedLasks=_dal.GetLinkedTasksByProjectUID(new Guid(guid)).Select(x => x.TaskName);
+            return linkedLasks;
+        }
+
         [Route("kuka/GetTypes")]
         [HttpGet]
         public IEnumerable<string> GetTypes()

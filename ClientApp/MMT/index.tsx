@@ -5,8 +5,10 @@ import Project from "./models/project";
 import { Dialog, DialogType, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { PrimaryButton, DefaultButton } from "office-ui-fabric-react/lib/Button";
 import { Button } from "react-bootstrap";
-import axios from "axios";
 import RowModel from "./models/RowModel";
+import LinkedTask from "./models/LinkedTask";
+import {Promise} from "es6-promise";
+import axios from "axios";
 
  interface IState {
     tasks : Array<RowModel>;
@@ -16,10 +18,12 @@ import RowModel from "./models/RowModel";
     error : string;
     isLoading : boolean;
     projects : Array<Project>;
+    linkedTaskPerProject : Array<LinkedTask>;
  }
 
 export default class MMT extends React.Component<any,IState> {
 
+    private updatedRowsFromOverViewComponent : RowModel[] = [];
     constructor(props : any) {
         super(props);
 
@@ -30,7 +34,8 @@ export default class MMT extends React.Component<any,IState> {
             hideDialog: true,
             refresh:false,
             error:"",
-            isLoading : false
+            isLoading : false,
+            linkedTaskPerProject : []
         } ;
 
         this.updateTaskOnProjectSelectionChanged = this.updateTaskOnProjectSelectionChanged.bind(this);
@@ -39,6 +44,7 @@ export default class MMT extends React.Component<any,IState> {
     public componentDidMount(): void {
         this.fetchAllProjects();
     }
+
     public render(): any {
         return (
 
@@ -54,7 +60,9 @@ export default class MMT extends React.Component<any,IState> {
                     <Button bsStyle="link">Milestone Management</Button>
                 <br/>
 
-                <OverView tasks={this.state.tasks} refresh = {this.state.refresh}/>
+                <OverView tasks={this.state.tasks} refresh = {this.state.refresh}
+                selectedProjectId={this.state.selectedProjectId} 
+                linkedTaskPerProject={this.props.linkedTaskPerProject}/>
 
                   {/* Dialog box for  save changes */}
                   <Dialog
@@ -102,19 +110,28 @@ export default class MMT extends React.Component<any,IState> {
 			this.fetchTaskByProjectId(this.state.selectedProjectId);
     }
 
-    private updateTaskOnProjectSelectionChanged(selectedProjectId : string): void {
-        this.setState({ selectedProjectId : selectedProjectId,
-                        refresh : true
-                    });
+    // private async updateTaskOnProjectSelectionChanged(selectedProjectId : string): Promise<void> {
+    //     let [taskCollection, linkTaskCollection] : any = await Promise.all([this.fetchTaskByProjectId(this.state.selectedProjectId),
+    //          this.fetchLinkedTasksByProjects(this.state.selectedProjectId)]);
 
-        this.fetchTaskByProjectId(selectedProjectId);
+    // }
+    private async updateTaskOnProjectSelectionChanged(selectedProjId : string): Promise<void>  {
+        let fetchTaskByProjectId : any = await this.fetchTaskByProjectId(this.state.selectedProjectId);
+		console.log(fetchTaskByProjectId);
+        // let [taskCollection, linkTaskCollection] = await Promise.all([this.fetchTaskByProjectId(selectedProjId),
+        //      this.fetchLinkedTasksByProjects(selectedProjId)]);
+
+		//  this.setState({selectedProjectId : selectedProjectId,
+        //     refresh : true,
+        //     tasks : taskCollection,
+        //     linkedTaskPerProject : linkTaskCollection});
+
     }
-
     private fetchAllProjects(): void {
         axios.get("http://localhost:5000/kuka/GetAllProjects")
-       .then((res : any )=> {
-            let projects : Project[] = res.data.data;
-            let defaultProject : Project = projects[0];
+        .then((res : any )=> {
+             let projects : Project[] = res.data.data;
+             let defaultProject : Project = projects[0];
             this.setState({
                 projects: projects,
                 selectedProjectId : defaultProject.id
@@ -126,26 +143,28 @@ export default class MMT extends React.Component<any,IState> {
         .catch(error => this.setState({ error, isLoading: false }));
     }
 
-    private fetchTaskByProjectId(projectId: string): void {
-        axios.get("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
-            .then((response : any) => {
-                this.setState({
-                    tasks : response.data
-                });
-            })
-            .catch((error) => {
-                this.setState({ error, isLoading: false });
-            });
-    }
+    // private fetchTaskByProjectId(projectId: string): any {
+    //     fetch("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
+    //         .then((res : any) => {
+    //             return  res.json();
+    //         });
+    // }
 
-    private fetchAllTypes(): void {
-        axios.get("http://localhost:5000/kuka/GetTypes")
-            .then((response : any) => {
-                console.log(response);
-            })
-            .catch((error) => {
-                this.setState({ error});
-            });
+    private fetchTaskByProjectId(projectId: string): any {
+        axios.get("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
+        .then((res : any) => {
+            let task : any = res.data.data;
+            // var data : any = res.json();
+            console.log(task);
+            return  task;
+        });
+    }
+    private fetchLinkedTasksByProjects(projectId: string): any {
+        axios.get("http://localhost:5000/kuka/getlinkedtasksbyprojectuid/{"+projectId+"}")
+        .then((res : any)=> {
+          return  res;
+        })
+        .catch(error => this.setState({ error, isLoading: false }));
     }
 
 }
