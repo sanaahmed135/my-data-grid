@@ -24,6 +24,7 @@ import axios from "axios";
 export default class MMT extends React.Component<any,IState> {
 
     private updatedRowsFromOverViewComponent : RowModel[] = [];
+
     constructor(props : any) {
         super(props);
 
@@ -38,11 +39,7 @@ export default class MMT extends React.Component<any,IState> {
             linkedTaskPerProject : []
         } ;
 
-        this.updateTaskOnProjectSelectionChanged = this.updateTaskOnProjectSelectionChanged.bind(this);
-    }
-
-    public componentDidMount(): void {
-        this.fetchAllProjects();
+        this.fetchTaskOnProjectSelectionChanged = this.fetchTaskOnProjectSelectionChanged.bind(this);
     }
 
     public render(): any {
@@ -50,7 +47,7 @@ export default class MMT extends React.Component<any,IState> {
 
             <div>
                 <script src="fabric.min.js"></script>
-                    <Auswahl collection = {this.state.projects} onAuswahl={this.updateTaskOnProjectSelectionChanged} />
+                    <Auswahl collection = {this.state.projects} onAuswahl={this.fetchTaskOnProjectSelectionChanged} />
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <DefaultButton >Import all unlinked Milestones from Project Plan</DefaultButton>
                     &nbsp;&nbsp;&nbsp;&nbsp;
@@ -61,8 +58,7 @@ export default class MMT extends React.Component<any,IState> {
                 <br/>
 
                 <OverView tasks={this.state.tasks} refresh = {this.state.refresh}
-                selectedProjectId={this.state.selectedProjectId} 
-                linkedTaskPerProject={this.props.linkedTaskPerProject}/>
+                linkedTaskPerProject={this.state.linkedTaskPerProject}/>
 
                   {/* Dialog box for  save changes */}
                   <Dialog
@@ -89,6 +85,24 @@ export default class MMT extends React.Component<any,IState> {
             </div>);
     }
 
+    public componentDidMount(): void {
+        this.InitlizeAsync();
+    }
+
+    private async InitlizeAsync(): Promise<void> {
+      let projects : Project[] =  await this.fetchAllProjectsAsync();
+      let tasks : RowModel[] = await this.fetchTaskByProjectIdAsync(projects[1].id);
+      let linkedTasks : LinkedTask [] = await this.fetchLinkedTasksByProjectsAsync(projects[1].id);
+
+      this.setState({
+          tasks : tasks,
+          refresh : true,
+          selectedProjectId : projects[1].id,
+          linkedTaskPerProject : linkedTasks,
+          projects : projects
+      });
+    }
+
     private showSaveChangesDialogBox = (): void => {
         this.setState({ hideDialog: false , refresh : false });
     }
@@ -103,68 +117,42 @@ export default class MMT extends React.Component<any,IState> {
             refresh : false});
     }
 
-    private discardChangesAndRefresh = (): void => {
+    private  discardChangesAndRefresh = (): void => {
 		this.setState({
             hideDialog: true,
             refresh : true});
-			this.fetchTaskByProjectId(this.state.selectedProjectId);
+			this.fetchTaskByProjectIdAsync(this.state.selectedProjectId);
     }
 
-    // private async updateTaskOnProjectSelectionChanged(selectedProjectId : string): Promise<void> {
-    //     let [taskCollection, linkTaskCollection] : any = await Promise.all([this.fetchTaskByProjectId(this.state.selectedProjectId),
-    //          this.fetchLinkedTasksByProjects(this.state.selectedProjectId)]);
+    private async fetchTaskOnProjectSelectionChanged(selectedProjectId : string): Promise<void>  {
 
-    // }
-    private async updateTaskOnProjectSelectionChanged(selectedProjId : string): Promise<void>  {
-        let fetchTaskByProjectId : any = await this.fetchTaskByProjectId(this.state.selectedProjectId);
-		console.log(fetchTaskByProjectId);
-        // let [taskCollection, linkTaskCollection] = await Promise.all([this.fetchTaskByProjectId(selectedProjId),
-        //      this.fetchLinkedTasksByProjects(selectedProjId)]);
-
-		//  this.setState({selectedProjectId : selectedProjectId,
-        //     refresh : true,
-        //     tasks : taskCollection,
-        //     linkedTaskPerProject : linkTaskCollection});
-
-    }
-    private fetchAllProjects(): void {
-        axios.get("http://localhost:5000/kuka/GetAllProjects")
-        .then((res : any )=> {
-             let projects : Project[] = res.data.data;
-             let defaultProject : Project = projects[0];
-            this.setState({
-                projects: projects,
-                selectedProjectId : defaultProject.id
-            });
-
-            this.updateTaskOnProjectSelectionChanged(defaultProject.id);
-
-         })
-        .catch(error => this.setState({ error, isLoading: false }));
-    }
-
-    // private fetchTaskByProjectId(projectId: string): any {
-    //     fetch("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
-    //         .then((res : any) => {
-    //             return  res.json();
-    //         });
-    // }
-
-    private fetchTaskByProjectId(projectId: string): any {
-        axios.get("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}")
-        .then((res : any) => {
-            let task : any = res.data.data;
-            // var data : any = res.json();
-            console.log(task);
-            return  task;
+      let tasks : RowModel[] = await this.fetchTaskByProjectIdAsync(selectedProjectId);
+      let linkedTasks : LinkedTask [] = await this.fetchLinkedTasksByProjectsAsync(selectedProjectId);
+      this.setState({
+          tasks : tasks,
+          refresh : true,
+          selectedProjectId : selectedProjectId,
+          linkedTaskPerProject : linkedTasks
         });
     }
-    private fetchLinkedTasksByProjects(projectId: string): any {
-        axios.get("http://localhost:5000/kuka/getlinkedtasksbyprojectuid/{"+projectId+"}")
-        .then((res : any)=> {
-          return  res;
-        })
-        .catch(error => this.setState({ error, isLoading: false }));
+
+    private async fetchAllProjectsAsync(): Promise<Project[]> {
+        let response : any = await fetch("http://localhost:5000/kuka/GetAllProjects");
+        let  responseAsJson :any = await response.json();
+        return responseAsJson.data;
+    }
+
+    private async fetchTaskByProjectIdAsync(projectId: string): Promise<RowModel[]> {
+        let response : any = await fetch("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}");
+        let  responseAsJson :any = await response.json();
+        return responseAsJson;
+
+    }
+
+    private async fetchLinkedTasksByProjectsAsync(projectId: string):  Promise<LinkedTask[]> {
+        let response : any = await fetch("http://localhost:5000/kuka/getlinkedtasksbyprojectuid/{"+projectId+"}");
+        let  responseAsJson :any = await response.json();
+        return responseAsJson;
     }
 
 }

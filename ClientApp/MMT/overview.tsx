@@ -18,7 +18,7 @@ import LinkedTask from "./models/LinkedTask";
 interface IOverviewProps {
   tasks: Array<RowModel>;
   refresh : boolean;
-  selectedProjectId : string;
+  // selectedProjectId : string;
   linkedTaskPerProject : LinkedTask [];
 }
 
@@ -116,13 +116,11 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   }
 
   public componentWillReceiveProps(newProps: IOverviewProps): void {
-    if (false === newProps.refresh) { // state will not set if user select 'No' on save changes
-    return;
-  }
-  this.tempAsync();
-  // this.createColumns(this.types,this.status,newProps.linkedTaskPerProject);
-  this.setState({ rows: this.getRows(newProps.tasks) });
-  this.changeFontColor();
+        if (false === newProps.refresh) {return; }
+        console.log(newProps.tasks);
+        this.tempAsync();
+        this.setState({ rows: this.getRows(newProps.tasks) });
+        this.changeFontColor();
 
   }
 
@@ -135,11 +133,6 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   }
 
   public createColumns(typeCollection : Type[], statusCollection : Status[],linkedTaskCollection : LinkedTask[]): void {
-    // this.types=typeCollection;
-    // this.status=statusCollection;
-    // let status: Array<Status> = this.status;
-    let linkedTask: Array<string> = [];
-    // https://github.com/adazzle/react-data-grid/issues/605
     this.columns= [
       {
         key: "task",
