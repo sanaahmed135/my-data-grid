@@ -36,7 +36,8 @@ export default class MMT extends React.Component<any,IState> {
             refresh:false,
             error:"",
             isLoading : false,
-            linkedTaskPerProject : []
+            linkedTaskPerProject : [],
+            rows : []
         } ;
 
         this.fetchTaskOnProjectSelectionChanged = this.fetchTaskOnProjectSelectionChanged.bind(this);
@@ -57,8 +58,10 @@ export default class MMT extends React.Component<any,IState> {
                     <Button bsStyle="link">Milestone Management</Button>
                 <br/>
 
-                <OverView tasks={this.state.tasks} refresh = {this.state.refresh}
-                linkedTaskPerProject={this.state.linkedTaskPerProject}/>
+                <OverView tasks={this.state.tasks}
+                          refresh = {this.state.refresh}
+                          onRowUpdate = {this.onOverViewGirdRowUpdate}
+                          linkedTaskPerProject={this.state.linkedTaskPerProject}/>
 
                   {/* Dialog box for  save changes */}
                   <Dialog
@@ -91,13 +94,14 @@ export default class MMT extends React.Component<any,IState> {
 
     private async InitlizeAsync(): Promise<void> {
       let projects : Project[] =  await this.fetchAllProjectsAsync();
-      let tasks : RowModel[] = await this.fetchTaskByProjectIdAsync(projects[1].id);
-      let linkedTasks : LinkedTask [] = await this.fetchLinkedTasksByProjectsAsync(projects[1].id);
+      let defaultProjectId : string = projects[1].id;
+      let tasks : RowModel[] = await this.fetchMilestonesByProjectIdAsync(defaultProjectId);
+      let linkedTasks : LinkedTask [] = await this.fetchLinkedTasksByProjectsAsync(defaultProjectId);
 
       this.setState({
           tasks : tasks,
           refresh : true,
-          selectedProjectId : projects[1].id,
+          selectedProjectId : defaultProjectId,
           linkedTaskPerProject : linkedTasks,
           projects : projects
       });
@@ -112,6 +116,7 @@ export default class MMT extends React.Component<any,IState> {
     }
 
     private saveChanges = (): void => {
+        console.log(this.updatedRowsFromOverViewComponent);
         this.setState({
             hideDialog: true,
             refresh : false});
@@ -121,12 +126,12 @@ export default class MMT extends React.Component<any,IState> {
 		this.setState({
             hideDialog: true,
             refresh : true});
-			this.fetchTaskByProjectIdAsync(this.state.selectedProjectId);
+			this.fetchMilestonesByProjectIdAsync(this.state.selectedProjectId);
     }
 
     private async fetchTaskOnProjectSelectionChanged(selectedProjectId : string): Promise<void>  {
 
-      let tasks : RowModel[] = await this.fetchTaskByProjectIdAsync(selectedProjectId);
+      let tasks : RowModel[] = await this.fetchMilestonesByProjectIdAsync(selectedProjectId);
       let linkedTasks : LinkedTask [] = await this.fetchLinkedTasksByProjectsAsync(selectedProjectId);
       this.setState({
           tasks : tasks,
@@ -142,7 +147,7 @@ export default class MMT extends React.Component<any,IState> {
         return responseAsJson.data;
     }
 
-    private async fetchTaskByProjectIdAsync(projectId: string): Promise<RowModel[]> {
+    private async fetchMilestonesByProjectIdAsync(projectId: string): Promise<RowModel[]> {
         let response : any = await fetch("http://localhost:5000/kuka/GetTaskByProjectUID/{"+projectId+"}");
         let  responseAsJson :any = await response.json();
         return responseAsJson;
@@ -153,6 +158,11 @@ export default class MMT extends React.Component<any,IState> {
         let response : any = await fetch("http://localhost:5000/kuka/getlinkedtasksbyprojectuid/{"+projectId+"}");
         let  responseAsJson :any = await response.json();
         return responseAsJson;
+    }
+
+    private onOverViewGirdRowUpdate(updatedRows : RowModel[]): void {
+       this.updatedRowsFromOverViewComponent = updatedRows;
+       console.log(this.updatedRowsFromOverViewComponent);
     }
 
 }

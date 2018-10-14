@@ -1,13 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
+using Newtonsoft.Json;
+using System;
 
-namespace kuka.Models
+namespace kuka.Server.Models
 {
     public class Milestone
     {
-        public int MyProperty { get; set; }
+        [JsonProperty("task")]
+        public string Name { get; set; }
+        
+        public string Date { get; set; }
+
+        public string Type { get; set; }
+
+        public string Status { get; set; }
+
+        public Guid ProjectId { get; set; }
+
+        public Guid TaskId { get; set; }
+
+        [JsonProperty("linkedTaskName")]
+        public string TaskName { get; set; }
+
 
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace kuka.Server.Models
 {
@@ -15,11 +14,8 @@ namespace kuka.Server.Models
         public string Type { get; set; }
 
         public string Status { get; set; }
-        //public bool isMilestone { get; set; }
-
-        //public bool isActive { get; set; }
-
-        public Guid LinkedTask { get; set; }
+       
+        public IEnumerable<string> LinkedTask { get; set; }
 
     }
 }

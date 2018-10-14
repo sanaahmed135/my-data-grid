@@ -18,7 +18,7 @@ import LinkedTask from "./models/LinkedTask";
 interface IOverviewProps {
   tasks: Array<RowModel>;
   refresh : boolean;
-  // selectedProjectId : string;
+  onRowUpdate : (rows : RowModel[]) => void;
   linkedTaskPerProject : LinkedTask [];
 }
 
@@ -44,13 +44,12 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   private columns: Array<Column> = new Array<Column>();
   private types: Array<Type> = [];
   private status: Array<Status> = [];
+  private alreadyAssignedLinkedTasks= [];
 
   constructor(props: any, context: any) {
     super(props, context);
     this.createColumns = this.createColumns.bind(this);
     this.handleDeleteRow = this.handleDeleteRow.bind(this);
-    // this.createColumns();
-    this.getRows = this.getRows.bind(this);
     this.handleChange = this.handleChange.bind(this);
     let originalRows: Array<RowModel> = [];
 
@@ -117,15 +116,15 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
 
   public componentWillReceiveProps(newProps: IOverviewProps): void {
         if (false === newProps.refresh) {return; }
-        console.log(newProps.tasks);
-        this.tempAsync();
-        this.setState({ rows: this.getRows(newProps.tasks) });
+
+        this.generateColumnAsync(newProps.tasks);
         this.changeFontColor();
 
   }
 
   public componentDidMount(): void {
-      this.tempAsync();
+
+    this.generateColumnAsync(this.props.tasks);
   }
 
   public getRowbyIndex = (index: number): RowModel => {
@@ -187,7 +186,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
         }
       },
       {
-        key: "linkedTask",
+        key: "linkedTaskName",
         name: "Linked Task",
         editor: <DropDownEditor options={linkedTaskCollection} />,
         editable: true,
@@ -196,7 +195,6 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
         width: 250,
         events: {
           onChange: (ev: React.SyntheticEvent<any>, args: any) => {
-            console.log(args);
             this.changeCellFontColor(ev, "red");
           }
         }
@@ -212,22 +210,6 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     });
   }
 
-  public getRows(tasks: any): Array<RowModel> {
-    let rows: Array<RowModel> = new Array<RowModel>();
-    let temp: any= this.props.tasks;
-    let nullProjectGuid :string = "00000000-0000-0000-0000-000000000000";
-    for (let id: number = 0; id < tasks.length; id++) {
-      let date: string =moment(tasks[id].date).format("DD.MM.YY");
-      let linkedTask : string=tasks[id].linkedTask === nullProjectGuid ?"":tasks[id].linkedTask ;
-      const row: RowModel = new RowModel(tasks[id].project,tasks[id].name,
-         date, tasks[id].type, tasks[id].status, linkedTask);
-      rows.push(row);
-
-    }
-    return rows;
-  }
-
-
   public handleGridRowsUpdated = (e: ReactGrid.GridRowsUpdatedEvent): void => {
     let rows: Array<RowModel> = this.state.rows.slice();
 
@@ -235,10 +217,9 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
           let rowToUpdate: RowModel = rows[i] as RowModel;
           let updatedRow: RowModel = update(rowToUpdate, { $merge: e.updated });
           rows[i] = updatedRow;
-          // rowToUpdate.isUpdated = true; // add
     }
     this.setState({ rows: rows, fromRow: e.fromRow, toRow: e.toRow });
-    // this.props.callback(rows); // add
+    this.props.onRowUpdate(rows);
   }
 
   handleAddRow = (newRowIndex: any) => {
@@ -269,7 +250,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   }
 
   changeFontColor(): void {
-    var coll : any =document.getElementsByClassName("react-grid-Cell__value");
+    var coll : any = document.getElementsByClassName("react-grid-Cell__value");
     for(var i : number=0, len : number=coll.length; i<len; i++) {
         coll[i].style.color = "black";
     }
@@ -290,26 +271,20 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.setState({ rows });
   }
 
-
-  private fetchAllTypesAsync(): any {
-     return fetch("http://localhost:5000/kuka/GetTypes")
-          .then((response : any)=> {
-            return response.json();
-        });
+  private async fetchAllTypesAsync(): Promise<Type[]> {
+    var response : any  = await fetch("http://localhost:5000/kuka/GetTypes");
+    return await response.json();
   }
 
-  private fetchAllStatusAsync(): any {
-    return fetch("http://localhost:5000/kuka/GetStatuses")
-            .then((response : any)=> {
-              return  response.json();
-            });
+  private async fetchAllStatusAsync(): Promise<Status[]> {
+    var response : any  = await fetch("http://localhost:5000/kuka/GetStatuses");
+    return await response.json();
   }
 
-  private  async tempAsync(): Promise<void> {
-
-      let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(),
-        this.fetchAllStatusAsync()]);
-        this.createColumns(typeCollection,statusCollection,this.props.linkedTaskPerProject);
+  private  async generateColumnAsync(tasks : RowModel[]): Promise<void> {
+      let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(),this.fetchAllStatusAsync()]);
+      await this.createColumns(typeCollection,statusCollection,this.props.linkedTaskPerProject);
+      this.setState({ rows: tasks});
 
   }
 

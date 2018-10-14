@@ -40,10 +40,10 @@ namespace kuka.Controllers
 
         [Route("kuka/GetTaskByProjectUID/{guid}")]
         [HttpGet]
-        public IEnumerable<Server.Models.Task> GetTaskByProjectUID(string guid)
+        public IEnumerable<Milestone> GetMilestonesByProjectUID(string guid)
         {
-            var tasks = _dal.GetTaskByProjectUID(new Guid(guid));
-            return tasks;
+            var milestones = _dal.GetMilestonesByProjectId(new Guid(guid));
+            return milestones;
         }
 
         [Route("kuka/GetLinkedTasksByProjectUID/{guid}")]
@@ -70,12 +70,12 @@ namespace kuka.Controllers
             return statuses;
         }
 
-        [HttpPost, Route("kuka/AddTasks/{projectId}")]
-        public int SetTasks(Guid projectId, [FromBody]Server.Models.Task task)
-        {
-            var tasks = _dal.AddMiletonesByProjectUID(task.Project, task.Name, task.Date, task.Type, task.Status, task.LinkedTask);
-            return tasks;
-        }
+        //[HttpPost, Route("kuka/AddTasks/{projectId}")]
+        //public int SetTasks(Guid projectId, [FromBody]Server.Models.Task task)
+        //{
+        //    //var tasks = _dal.AddMiletonesByProjectUID(task.Project, task.Name, task.Date, task.Type, task.Status, task.LinkedTask);
+        //    // return tasks;
+        //}
         [Route("GetDisplayContent/{name}")]
         [HttpGet]
         public string GetDisplayContent(string name)

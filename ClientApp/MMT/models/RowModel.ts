@@ -8,18 +8,18 @@ export default class RowModel {
     rDate :string;
     type : string;
     status : string;
-    linkedTask : string;
+    linkedTaskName : string;
     // isDirty : boolean; // add
 
 
      constructor(_projectId : string,  _task : string, _rdate : string,
-         _type: string, _status : string, _linkedTask : string) {
+         _type: string, _status : string, _linkedTaskName : string) {
         this.projectId = _projectId;
         this.task = _task;
         this.rDate = _rdate;
         this.type = _type;
         this.status = _status;
-        this.linkedTask = _linkedTask;
+        this.linkedTaskName = _linkedTaskName;
         this.taskChanged = false;
     }
 }

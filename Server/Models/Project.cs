@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Collections.Generic;
 
 namespace kuka.Server.Models
 {
@@ -9,6 +9,8 @@ namespace kuka.Server.Models
 
         public string Name { get; set; }
 
-        public string Author { get; set; }
+       // public string Author { get; set; }
+
+       // public IEnumerable<Milestone> Milestones { get; set; }
     }
 }

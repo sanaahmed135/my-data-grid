@@ -24,11 +24,11 @@ namespace kuka.Server.DB
 
         }
        
-        public IEnumerable<Task> GetTaskByProjectUID(Guid projectId)
+        public IEnumerable<Milestone> GetMilestonesByProjectId(Guid projectId)
         {
             using (var conn = new SqlConnection(_connectionString))
             {
-                var result = conn.Query<Task>("kuka.GetTasksByProjectUID",
+                var result = conn.Query<Milestone>("kuka.GetTasksByProjectUID",
                     new { @ProjectUid = projectId},
                     commandType: CommandType.StoredProcedure);
  
