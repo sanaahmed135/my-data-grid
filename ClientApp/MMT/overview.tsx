@@ -2,24 +2,18 @@
 import ReactGrid, { Cell,Row} from "react-data-grid";
 import Column from "./models/Column";
 import RowModel from "./models/RowModel";
-import {Promise} from "es6-promise";
 import update from "immutability-helper";
 import { Editors, Toolbar, Data } from "react-data-grid-addons";
-import { Button } from "react-bootstrap";
-const { AutoComplete: AutoCompleteEditor, DropDownEditor } = Editors;
-import moment from "moment";
+const { DropDownEditor } = Editors;
 import DatePickerBasic from "./models/DatePicker";
 import ChangedCellFormater from "./ChangedCellFormater";
 import CustomSelectAll from "./models/CustomSelectAll";
-import Type from "./models/Type";
-import Status from "./models/Status";
-import LinkedTask from "./models/LinkedTask";
 
 interface IOverviewProps {
   tasks: Array<RowModel>;
   refresh : boolean;
   onRowUpdate : (rows : RowModel[]) => void;
-  linkedTaskPerProject : LinkedTask [];
+  linkedTaskPerProject : string [];
 }
 
 interface IOverviewState {
@@ -42,9 +36,8 @@ class CustomRowSelectorCell extends Editors.CheckboxEditor {
 
 export default class Overview extends React.Component<IOverviewProps, IOverviewState> {
   private columns: Array<Column> = new Array<Column>();
-  private types: Array<Type> = [];
-  private status: Array<Status> = [];
-  private alreadyAssignedLinkedTasks= [];
+  private types: Array<string> = [];
+  private statuses: Array<string> = [];
 
   constructor(props: any, context: any) {
     super(props, context);
@@ -131,7 +124,7 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     return this.state.rows[index];
   }
 
-  public createColumns(typeCollection : Type[], statusCollection : Status[],linkedTaskCollection : LinkedTask[]): void {
+  public createColumns(typeCollection : string[], statusCollection : string[],linkedTaskCollection : string[]): void {
     this.columns= [
       {
         key: "task",
@@ -217,22 +210,20 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
           let rowToUpdate: RowModel = rows[i] as RowModel;
           let updatedRow: RowModel = update(rowToUpdate, { $merge: e.updated });
           rows[i] = updatedRow;
-    }
+      }
     this.setState({ rows: rows, fromRow: e.fromRow, toRow: e.toRow });
     this.props.onRowUpdate(rows);
   }
 
   handleAddRow = (newRowIndex: any) => {
-    // let type: Type = this.types[0];
-    // let status: Status =this.status[0];
-    let type: string = ["", "Evaluation", "Prototype", "Initial-Batch",
-      "Serial-Release", "Project Specific", "Stipulation"][0];
-    let status: string = ["", "Active", "Closed", "Removed"][0];
-    let linkedTask: string = ["", "40 | Release 1.0 Prototype", "100 | EoP",
-      "145 | v1.2 Stipulation", "173 | Release 1.3 Prototype", "189 | Initial-Batch"
-      , "203 | Release 1.3 Serial Release", "226 | Release 1.4 Prototype"][0];
-    let rDate: string = "10.10.2018";
-    const newRow: RowModel = new RowModel("","", rDate, type, status, linkedTask);
+
+    const newRow: RowModel = new RowModel("",
+                                          "",
+                                          "14.11.1901",
+                                          this.types[0],
+                                          this.statuses[0],
+                                          this.props.linkedTaskPerProject[0]);
+
     let rows: ReadonlyArray<RowModel> = this.state.rows.slice();
     rows = update(rows, { $push: [newRow] });
     this.setState({ rows });
@@ -271,12 +262,12 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
     this.setState({ rows });
   }
 
-  private async fetchAllTypesAsync(): Promise<Type[]> {
+  private async fetchAllTypesAsync(): Promise<string[]> {
     var response : any  = await fetch("http://localhost:5000/kuka/GetTypes");
     return await response.json();
   }
 
-  private async fetchAllStatusAsync(): Promise<Status[]> {
+  private async fetchAllStatusAsync(): Promise<string[]> {
     var response : any  = await fetch("http://localhost:5000/kuka/GetStatuses");
     return await response.json();
   }
@@ -284,6 +275,8 @@ export default class Overview extends React.Component<IOverviewProps, IOverviewS
   private  async generateColumnAsync(tasks : RowModel[]): Promise<void> {
       let [typeCollection, statusCollection] = await Promise.all([this.fetchAllTypesAsync(),this.fetchAllStatusAsync()]);
       await this.createColumns(typeCollection,statusCollection,this.props.linkedTaskPerProject);
+      this.types = typeCollection;
+      this.statuses = statusCollection;
       this.setState({ rows: tasks});
 
   }

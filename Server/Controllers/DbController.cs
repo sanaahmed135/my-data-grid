@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.AspNetCore.Mvc;
 using Dapper;
 using System.Data;
@@ -70,12 +70,37 @@ namespace kuka.Controllers
             return statuses;
         }
 
-        //[HttpPost, Route("kuka/AddTasks/{projectId}")]
-        //public int SetTasks(Guid projectId, [FromBody]Server.Models.Task task)
-        //{
-        //    //var tasks = _dal.AddMiletonesByProjectUID(task.Project, task.Name, task.Date, task.Type, task.Status, task.LinkedTask);
-        //    // return tasks;
-        //}
+        [HttpPost, Route("kuka/Insert/{projectId}")]
+        public JsonResult InsertMilestone(Guid projectId, [FromBody]IEnumerable<Milestone> milestones)
+        {
+            
+            // 1.   Get Status , Type and Linked Task Collection
+            //var typeCollection = new List<Server.Models.Type>();
+            //try
+            //{
+                //using (var transactionScope = new TransactionScope())
+                //{
+                //    _dal.DeletetMiletones(projectId);
+
+                //    foreach (var milestone in milestones)
+                //    {
+                //        milestone.ProjectId = milestone.ProjectId == Guid.Empty ? projectId : milestone.ProjectId;
+                //        milestone.TypeId = typeCollection.Single(x => x.DisplayName == milestone.Name).id;
+                //        // Same for status & linkedtask
+                //        _dal.InsertMiletone(milestone);
+                //    }
+
+                //    transactionScope.Complete();
+                //}
+                return Json(new JsonReponse { Data = null, IsSucessful = true, Error = string.Empty });
+
+            //}
+            //catch (Exception ex)
+            //{
+            //    return Json(new JsonReponse { Data = null, IsSucessful = false, Error = ex.Message });
+            //}
+        }
+
         [Route("GetDisplayContent/{name}")]
         [HttpGet]
         public string GetDisplayContent(string name)

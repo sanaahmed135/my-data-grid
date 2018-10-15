@@ -1,8 +1,7 @@
-import TaskModel from "../models/TaskModel";
 import RowModel from "../models/RowModel";
 
 export default interface IMilestoneProps {
-    tasks: Array<TaskModel>;
+    tasks: Array<RowModel>;
     refresh : boolean;
   }
 

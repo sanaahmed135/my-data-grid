@@ -23,15 +23,15 @@ namespace kuka.Server.DB
             }
 
         }
-       
+
         public IEnumerable<Milestone> GetMilestonesByProjectId(Guid projectId)
         {
             using (var conn = new SqlConnection(_connectionString))
             {
                 var result = conn.Query<Milestone>("kuka.GetTasksByProjectUID",
-                    new { @ProjectUid = projectId},
+                    new { @ProjectUid = projectId },
                     commandType: CommandType.StoredProcedure);
- 
+
                 return result;
             }
 
@@ -72,18 +72,20 @@ namespace kuka.Server.DB
             }
 
         }
-        public int AddMiletonesByProjectUID(Guid projectId, string task, string date, string type, string status, Guid linkedTask)
 
+        public int InsertMiletone(Milestone milestone)
         {
             using (var conn = new SqlConnection(_connectionString))
             {
                 var result = conn.Execute("[kuka].[AddMiletonesByProjectUID]",
-                    new { @Project = projectId,
-                    @Name =task,
-                    @Date =date,
-                    @Type = type,
-                    @Status = status,
-                    @linkedTask = linkedTask
+                    new
+                    {
+                        @Project = milestone.ProjectId,
+                        @Name = milestone.Name,
+                        @Date = milestone.Date,
+                        @Type = milestone.Type,
+                        @Status = milestone.Status,
+                        @linkedTask = milestone.TaskId
                     },
                     commandType: CommandType.StoredProcedure);
 
@@ -91,6 +93,24 @@ namespace kuka.Server.DB
             }
 
         }
+
+        public int DeletetMiletones(Guid projectId)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var result = conn.Execute("[kuka].[DeleteMilestonesByProjectId]",
+                    new
+                    {
+                        @ProjectId = projectId
+
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+
+        }
+
 
         //public IEnumerable<SamWasHere> GetSameWasHereByProjectId(Guid projectId)
         //{

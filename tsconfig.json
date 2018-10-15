@@ -7,11 +7,14 @@
     "jsx": "react",
     "strict": true,                           /* Enable all strict type-checking options. */
     "esModuleInterop": true,                   /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */    
+    "strictNullChecks" : false,
+    "suppressImplicitAnyIndexErrors" : true,
     "typeRoots": [
       "node_modules/@types",
       "@types"
     ],
-    "lib": [ "es2015" ]
+    "lib": [ "es2015", "dom" ],
+
 
   },
   // "compilerOptions": {

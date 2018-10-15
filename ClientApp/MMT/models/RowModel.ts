@@ -8,6 +8,8 @@ export default class RowModel {
     rDate :string;
     type : string;
     status : string;
+    typeId : number;
+    statusId : number;
     linkedTaskName : string;
     // isDirty : boolean; // add
 

@@ -1,8 +1,8 @@
 export default class Type {
-    id : string;
+    id : number;
     displayName : string;
 
-    constructor(_id : string,_displayName : string) {
+    constructor(_id : number,_displayName : string) {
         this.id=_id;
         this.displayName=_displayName;
     }
